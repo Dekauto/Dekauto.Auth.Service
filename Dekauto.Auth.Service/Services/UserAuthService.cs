@@ -98,19 +98,39 @@ namespace Dekauto.Auth.Service.Services
             response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
 
-        public async Task ChangePasswordAsync(Guid userId, string newPassword, string currentPassword)
+        public async Task ChangePasswordAsync(Guid userId, string newPassword, string? currentPassword, bool forceUpdate = false)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(newPassword);
             var currentUser = await usersRepository.GetByIdAsync(userId);
+            if (currentUser == null) throw new KeyNotFoundException();
 
-            // Сравниваем пароли для подтверждения изменения пароля на новый
-            if (VerifyHashedPassword(currentUser.PasswordHash, currentPassword))
+            if (forceUpdate)
             {
-                currentUser.PasswordHash = HashPassword(newPassword);
-                await usersRepository.UpdateAsync(currentUser);
-            } 
+                var isForceAllowed = configuration.GetValue<bool>("AllowForcePasswordChange", false);
+
+                if (isForceAllowed)
+                {
+                    // Если принудительная смена пароля, то старый не требуется
+                    currentUser.PasswordHash = HashPassword(newPassword);
+                    await usersRepository.UpdateAsync(currentUser);
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+            }
             else
             {
-                throw new InvalidCredentialException("Неверный пароль.");
+                // Сравниваем пароли для подтверждения изменения пароля на новый
+                if (VerifyHashedPassword(currentUser.PasswordHash, currentPassword))
+                {
+                    currentUser.PasswordHash = HashPassword(newPassword);
+                    await usersRepository.UpdateAsync(currentUser);
+                }
+                else
+                {
+                    throw new InvalidCredentialException("Неверный пароль.");
+                }
             }
         }
 

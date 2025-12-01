@@ -100,6 +100,52 @@ namespace Dekauto.Auth.Service.Controllers
             }
         }
 
+        [HttpPost("{userId}/changepass/force")]
+        public async Task<IActionResult> ForceUpdateUserPasswordAsync(Guid userId, string newPassword)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(newPassword))
+                {
+                    throw new ArgumentException($"'{nameof(newPassword)}' cannot be null or empty.", nameof(newPassword));
+                }
+
+                await userAuthService.ChangePasswordAsync(userId, newPassword, null, true);
+
+                return Ok();
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogError(ex, "Force password update is not available.");
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    "Принудительная смена пароля недоступна.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                logger.LogError(ex, "User not found");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Пользователь не найден.");
+            }
+            catch (InvalidCredentialException ex)
+            {
+                logger.LogError(ex, "Invalid password.");
+                return StatusCode(StatusCodes.Status403Forbidden, "Указан неверный пароль.");
+            }
+            catch (ArgumentException ex)
+            {
+                logger.LogError(ex, "Not enough arguments passed to change the password");
+                return StatusCode(StatusCodes.Status400BadRequest,
+                    "Возникла непредвиденная ошибка при изменении пароля. Обратитесь к администратору или попробуйте позже.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An unexpected error occurred while changing the password");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Возникла непредвиденная ошибка при изменении пароля. Обратитесь к администратору или попробуйте позже.");
+            }
+        }
+
         [HttpPut("{userId}")]
         public async Task<IActionResult> UpdateUserAsync(Guid userId, UserDto updatedUserDto, 
                                                             string? newPassword = null)
