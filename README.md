@@ -23,6 +23,8 @@
 - `GET    api/users`                  - **GetAllUsersAsync**       - Список всех пользователей
 - `GET    api/users/{userId}`         - **GetUserByIdAsync**       - Пользователь по GUID
 - `POST   api/users/{userId}/changepass` - **UpdateUserPasswordAsync** - Смена пароля (текущий + новый пароль)
+- `POST   api/users/{userId}/changepass/force`                  - **ForceUpdateUserPasswordAsync**      - Принудительное изменение пароля, без введения старого (включается в конфиге и доступно без авторизации)
+- `GET    api/users/changepass/force/available`                  - **IsForcePasswordChangeAvailable**      - Доступность принудительного изменения пароля
 - `PUT    api/users/{userId}`         - **UpdateUserAsync**    - Обновление данных пользователя (+ опционально пароль)
 - `DELETE api/users/{userId}`         - **DeleteUserAsync**        - Удаление пользователя по GUID
 - `POST   api/users`                  - **AddUserAsync**      - Добавление нового пользователя (с паролем)
