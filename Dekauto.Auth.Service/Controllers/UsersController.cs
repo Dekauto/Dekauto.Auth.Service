@@ -14,13 +14,15 @@ namespace Dekauto.Auth.Service.Controllers
     {
         private readonly IUserAuthService userAuthService;
         private readonly IUsersRepository usersRepository;
+        private readonly IConfiguration configuration;
         private readonly ILogger<UserAuthController> logger;
 
         public UsersController(IUserAuthService userAuthService, IUsersRepository usersRepository,
-            ILogger<UserAuthController> logger)
+            ILogger<UserAuthController> logger, IConfiguration configuration)
         {
             this.userAuthService = userAuthService;
             this.usersRepository = usersRepository;
+            this.configuration = configuration;
             this.logger = logger;
         }
 
@@ -98,6 +100,13 @@ namespace Dekauto.Auth.Service.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при изменении пароля. Обратитесь к администратору или попробуйте позже.");
             }
+        }
+
+        [HttpGet("/changepass/force/available")]
+        public IActionResult IsForcePasswordChangeAvailable()
+        {
+            var isAvailable = configuration.GetValue<bool>("AllowForcePasswordChange", false);
+            return Ok(isAvailable);
         }
 
         [HttpPost("{userId}/changepass/force")]
