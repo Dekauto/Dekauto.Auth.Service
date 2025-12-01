@@ -362,3 +362,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /Dekauto.Auth.Service/appsettings.klancer.json
+/Dekauto.Auth.Service/Properties/launchSettings.json

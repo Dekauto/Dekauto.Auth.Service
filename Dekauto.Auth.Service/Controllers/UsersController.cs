@@ -109,6 +109,7 @@ namespace Dekauto.Auth.Service.Controllers
             return Ok(isAvailable);
         }
 
+        [AllowAnonymous]
         [HttpPost("{userId}/changepass/force")]
         public async Task<IActionResult> ForceUpdateUserPasswordAsync(Guid userId, string newPassword)
         {
