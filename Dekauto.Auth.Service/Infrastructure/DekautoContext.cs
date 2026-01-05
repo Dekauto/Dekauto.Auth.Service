@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Dekauto.Auth.Service.Domain.Entities;
+﻿using Dekauto.Auth.Service.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 
 namespace Dekauto.Auth.Service.Infrastructure;
 
@@ -23,6 +23,8 @@ public partial class DekautoContext : DbContext
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<Student> Students { get; set; }
+
+    public virtual DbSet<TokenInfo> TokenInfos { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -299,6 +301,44 @@ public partial class DekautoContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("students_user_id_fkey");
+        });
+
+        modelBuilder.Entity<TokenInfo>(entity =>
+        {
+            entity.HasKey(e => new { e.Jti, e.UserId }).HasName("token_infos_pkey");
+
+            entity.ToTable("token_infos");
+
+            entity.HasIndex(e => e.ExpiresAt, "idx_token_infos_expires");
+
+            entity.HasIndex(e => new { e.UserId, e.ExpiresAt }, "idx_token_infos_user_expires").HasFilter("(NOT is_revoked)");
+
+            entity.Property(e => e.Jti)
+                .HasMaxLength(255)
+                .HasColumnName("jti");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.DeviceInfo).HasColumnName("device_info");
+            entity.Property(e => e.ExpiresAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("expires_at");
+            entity.Property(e => e.IpAddress).HasColumnName("ip_address");
+            entity.Property(e => e.IsRevoked)
+                .HasDefaultValue(false)
+                .HasColumnName("is_revoked");
+            entity.Property(e => e.RevokeReason)
+                .HasMaxLength(500)
+                .HasColumnName("revoke_reason");
+            entity.Property(e => e.RevokedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("revoked_at");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TokenInfos)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("token_infos_user_id_fkey");
         });
 
         modelBuilder.Entity<User>(entity =>
