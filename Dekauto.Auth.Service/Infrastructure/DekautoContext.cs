@@ -16,6 +16,10 @@ public partial class DekautoContext : DbContext
     {
     }
 
+    public virtual DbSet<Discipline> Disciplines { get; set; }
+
+    public virtual DbSet<Grade> Grades { get; set; }
+
     public virtual DbSet<Group> Groups { get; set; }
 
     public virtual DbSet<Oo> Oos { get; set; }
@@ -34,6 +38,66 @@ public partial class DekautoContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("uuid-ossp");
+
+        modelBuilder.Entity<Discipline>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("disciplines_pkey");
+
+            entity.ToTable("disciplines");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.AcademicHours)
+                .HasComment("Академические часы")
+                .HasColumnName("academic_hours");
+            entity.Property(e => e.CreditUnits)
+                .HasComment("Зачетные единицы")
+                .HasColumnName("credit_units");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasComment("Название дисциплины")
+                .HasColumnName("name");
+            entity.Property(e => e.Type)
+                .HasMaxLength(255)
+                .HasComment("зачет, зачет с оценкой, экзамен, курсовая, практика")
+                .HasColumnName("type");
+        });
+
+        modelBuilder.Entity<Grade>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("grades_pkey");
+
+            entity.ToTable("grades");
+
+            entity.HasIndex(e => e.DisciplineId, "grades_discipline_id_key").IsUnique();
+
+            entity.HasIndex(e => e.StudentId, "grades_student_id_key").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.DisciplineId).HasColumnName("discipline_id");
+            entity.Property(e => e.Grade1)
+                .HasMaxLength(255)
+                .HasDefaultValueSql("'Оценка (от 0 до 15, или зачет)'::character varying")
+                .HasColumnName("grade");
+            entity.Property(e => e.SemesterNumber)
+                .HasComment("Номер семестра")
+                .HasColumnName("semester_number");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.Year)
+                .HasComment("Год для семестра")
+                .HasColumnName("year");
+
+            entity.HasOne(d => d.Discipline).WithOne(p => p.Grade)
+                .HasForeignKey<Grade>(d => d.DisciplineId)
+                .HasConstraintName("grades_discipline_id_fkey");
+
+            entity.HasOne(d => d.Student).WithOne(p => p.Grade)
+                .HasForeignKey<Grade>(d => d.StudentId)
+                .HasConstraintName("grades_student_id_fkey");
+        });
 
         modelBuilder.Entity<Group>(entity =>
         {
@@ -305,36 +369,41 @@ public partial class DekautoContext : DbContext
 
         modelBuilder.Entity<TokenInfo>(entity =>
         {
-            entity.HasKey(e => new { e.Jti, e.UserId }).HasName("token_infos_pkey");
+            entity.HasKey(e => e.Id).HasName("token_infos_pkey");
 
             entity.ToTable("token_infos");
 
-            entity.HasIndex(e => e.ExpiresAt, "idx_token_infos_expires");
+            entity.HasIndex(e => e.ExpiresAt, "idx_token_infos_expires_at");
 
-            entity.HasIndex(e => new { e.UserId, e.ExpiresAt }, "idx_token_infos_user_expires").HasFilter("(NOT is_revoked)");
+            entity.HasIndex(e => e.Jti, "idx_token_infos_jti").IsUnique();
 
-            entity.Property(e => e.Jti)
-                .HasMaxLength(255)
-                .HasColumnName("jti");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.HasIndex(e => e.RefreshTokenHash, "idx_token_infos_refresh_hash");
+
+            entity.HasIndex(e => e.UserId, "idx_token_infos_user_id");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.DeviceInfo).HasColumnName("device_info");
-            entity.Property(e => e.ExpiresAt)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("expires_at");
+            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
             entity.Property(e => e.IpAddress).HasColumnName("ip_address");
             entity.Property(e => e.IsRevoked)
                 .HasDefaultValue(false)
                 .HasColumnName("is_revoked");
+            entity.Property(e => e.Jti)
+                .HasMaxLength(255)
+                .HasColumnName("jti");
+            entity.Property(e => e.RefreshTokenHash)
+                .HasMaxLength(255)
+                .HasColumnName("refresh_token_hash");
             entity.Property(e => e.RevokeReason)
                 .HasMaxLength(500)
                 .HasColumnName("revoke_reason");
-            entity.Property(e => e.RevokedAt)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("revoked_at");
+            entity.Property(e => e.RevokedAt).HasColumnName("revoked_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
 
             entity.HasOne(d => d.User).WithMany(p => p.TokenInfos)
                 .HasForeignKey(d => d.UserId)
