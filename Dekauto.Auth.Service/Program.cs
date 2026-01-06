@@ -222,9 +222,12 @@ try
         // Аутентификация (JWT, куки)
         app.UseAuthentication();
 
+        // СРАЗУ ПОСЛЕ - проверяем блокировку токена в БД
+        app.UseMiddleware<TokenRevocationMiddleware>();
+
         // Авторизация (проверка атрибутов [Authorize])
         app.UseAuthorization();
-    }
+    }   
     else
     {
         Log.Warning("Disabled all endpoint authorization.");

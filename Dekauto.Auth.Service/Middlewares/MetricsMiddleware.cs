@@ -1,6 +1,6 @@
 ﻿using Dekauto.Auth.Service.Domain.Interfaces;
 
-namespace Dekauto.Auth.Service.Infrastructure
+namespace Dekauto.Auth.Service.Middlewares
 {
     // You may need to install the Microsoft.AspNetCore.Http.Abstractions package into your project
     public class MetricsMiddleware
