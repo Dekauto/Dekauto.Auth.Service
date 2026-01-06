@@ -12,13 +12,13 @@ namespace Dekauto.Auth.Service.Controllers
     [Authorize(Policy = "OnlyAdmin")]
     public class UsersController : ControllerBase
     {
-        private readonly IUserAuthService userAuthService;
+        private readonly IUserAuthServiceDb userAuthService;
         private readonly IUsersRepository usersRepository;
         private readonly IConfiguration configuration;
-        private readonly ILogger<UserAuthController> logger;
+        private readonly ILogger<UserAuthControllerDb> logger;
 
-        public UsersController(IUserAuthService userAuthService, IUsersRepository usersRepository,
-            ILogger<UserAuthController> logger, IConfiguration configuration)
+        public UsersController(IUserAuthServiceDb userAuthService, IUsersRepository usersRepository,
+            ILogger<UserAuthControllerDb> logger, IConfiguration configuration)
         {
             this.userAuthService = userAuthService;
             this.usersRepository = usersRepository;

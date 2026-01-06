@@ -1,9 +1,10 @@
-﻿using Dekauto.Auth.Service.Domain.Entities.DTO;
+﻿using Dekauto.Auth.Service.Domain.Entities;
+using Dekauto.Auth.Service.Domain.Entities.DTO;
 using Dekauto.Auth.Service.Domain.Entities.Models;
 
 namespace Dekauto.Auth.Service.Domain.Interfaces
 {
-    public interface IUserAuthServiceDb
+    public interface IUserAuthServiceDb : IDtoConverter<User, UserDto>
     {
         // Основной метод входа
         Task<TokensModel> AuthenticateAndGetTokensAsync(string login, string password);

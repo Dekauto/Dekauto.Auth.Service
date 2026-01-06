@@ -12,12 +12,12 @@ namespace Dekauto.Auth.Service.Controllers
     {
         private readonly IJwtTokenServiceDb jwtTokenService; // Сервис работы с токенами (БД)
         private readonly IUserAuthServiceDb userAuthService;   // Сервис работы с пользователями
-        private readonly ILogger<UserAuthController> logger;
+        private readonly ILogger<UserAuthControllerDb> logger;
 
         public UserAuthControllerDb(
             IJwtTokenServiceDb jwtTokenService,
             IUserAuthServiceDb userAuthService,
-            ILogger<UserAuthController> logger)
+            ILogger<UserAuthControllerDb> logger)
         {
             this.jwtTokenService = jwtTokenService;
             this.userAuthService = userAuthService;
@@ -25,6 +25,7 @@ namespace Dekauto.Auth.Service.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult> AuthenticateAndGetTokensAsync([FromBody] LoginAdapter loginUser)
         {
             try
