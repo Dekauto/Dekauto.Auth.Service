@@ -1,5 +1,6 @@
 using Dekauto.Auth.Service.Domain.Interfaces;
 using Dekauto.Auth.Service.Infrastructure;
+using Dekauto.Auth.Service.Infrastructure.Repositories;
 using Dekauto.Auth.Service.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -165,6 +166,7 @@ try
     });
     // Добавляем JWT сервис
     builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+    builder.Services.AddScoped<ITokenRepository, TokenRepository>();
     builder.Services.AddTransient<IUserAuthService, UserAuthService>();
     builder.Services.AddTransient<IUsersRepository, UsersRepository>();
     builder.Services.AddTransient<IRolesRepository, RolesRepository>();
