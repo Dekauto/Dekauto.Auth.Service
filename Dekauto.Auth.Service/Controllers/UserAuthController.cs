@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace Dekauto.Auth.Service.Controllers
 {
-    [Route("api/auth")]
+    [Route("api/v0/auth")]
     [ApiController]
     public class UserAuthController : ControllerBase
     {

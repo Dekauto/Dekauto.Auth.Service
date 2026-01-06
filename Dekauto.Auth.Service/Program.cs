@@ -169,7 +169,8 @@ try
     builder.Services.AddScoped<IJwtTokenServiceDb, JwtTokenServiceDb>();
     builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>(); // старый
     builder.Services.AddScoped<ITokenRepository, TokenRepository>();
-    builder.Services.AddTransient<IUserAuthService, UserAuthService>();
+    builder.Services.AddTransient<IUserAuthService, UserAuthService>(); // старый
+    builder.Services.AddScoped<IUserAuthServiceDb, UserAuthServiceDb>();
     builder.Services.AddTransient<IUsersRepository, UsersRepository>();
     builder.Services.AddTransient<IRolesRepository, RolesRepository>();
     builder.Services.AddTransient<IRolesService, RolesService>();
