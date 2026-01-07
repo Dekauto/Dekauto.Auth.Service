@@ -86,5 +86,16 @@ namespace Dekauto.Auth.Service.Infrastructure.Repositories
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
         }
+
+        public async Task RevokeAllTokensAsync(string reason = null)
+        {
+            // Блокируем все активные (не отозванные) токены пользователя
+            await context.TokenInfos
+                .Where(t => !t.IsRevoked)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(t => t.IsRevoked, true)
+                    .SetProperty(t => t.RevokedAt, DateTime.UtcNow)
+                    .SetProperty(t => t.RevokeReason, reason ?? "Mass revoked ALL tokens"));
+        }
     }
 }

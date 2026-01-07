@@ -13,7 +13,7 @@ namespace Dekauto.Auth.Service.Domain.Interfaces
         Task<UserDto?> GetUserByIdAsync(Guid userId); // НОВЫЙ МЕТОД ДЛЯ КОНТРОЛЛЕРА
         Task AddUserAsync(UserDto userDto, string password);
         Task UpdateUserAsync(Guid userId, UserDto updatedUserDto, string newPassword = null);
-        Task ChangePasswordAsync(Guid userId, string newPassword, string? currentPassword, bool forceUpdate = false);
+        Task ChangePasswordAsync(string userId, string newPassword, string? currentPassword, bool forceUpdate = false);
 
         // Хеширование
         string HashPassword(string password);

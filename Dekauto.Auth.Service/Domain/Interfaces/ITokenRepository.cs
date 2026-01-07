@@ -29,12 +29,17 @@ namespace Dekauto.Auth.Service.Domain.Interfaces
         Task RevokeByJtiAsync(string jti, string reason = null);
 
         /// <summary>
-        /// Отзывает все токены пользователя (Logout from all devices).
+        /// Отзывает все токены пользователя.
         /// </summary>
         Task RevokeAllUserTokensAsync(Guid userId, string reason = null);
 
         /// <summary>
-        /// (Опционально) Получение всех сессий пользователя для админки.
+        /// Отзывает ВСЕ активные токены в системе.
+        /// </summary>
+        Task RevokeAllTokensAsync(string reason = null);
+
+        /// <summary>
+        /// Получение всех сессий пользователя для админки.
         /// </summary>
         Task<List<TokenInfo>> GetUserSessionsAsync(Guid userId);
     }

@@ -7,7 +7,7 @@ namespace Dekauto.Auth.Service.Domain.Interfaces
         /// <summary>
         /// Получает список всех сессий пользователя (активных и отозванных).
         /// </summary>
-        Task<List<UserSessionDto>> GetUserSessionsAsync(Guid userId);
+        Task<List<UserSessionDto>> GetUserSessionsAsync(string login);
 
         /// <summary>
         /// Отзывает (блокирует) конкретную сессию по её JTI.
@@ -17,6 +17,11 @@ namespace Dekauto.Auth.Service.Domain.Interfaces
         /// <summary>
         /// Отзывает (блокирует) вообще все сессии пользователя.
         /// </summary>
-        Task RevokeAllUserSessionsAsync(Guid userId, string reason);
+        Task RevokeAllUserSessionsAsync(string login, string reason);
+
+        /// <summary>
+        /// Отзывает (блокирует) вообще ВСЕ сессии ВСЕХ пользователей.
+        /// </summary>
+        Task RevokeAllSessionsAsync(string reason);
     }
 }

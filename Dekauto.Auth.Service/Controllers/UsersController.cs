@@ -14,15 +14,13 @@ namespace Dekauto.Auth.Service.Controllers
     {
         private readonly IUserAuthServiceDb userAuthService;
         private readonly IUsersRepository usersRepository;
-        private readonly IConfiguration configuration;
         private readonly ILogger<UserAuthControllerDb> logger;
 
         public UsersController(IUserAuthServiceDb userAuthService, IUsersRepository usersRepository,
-            ILogger<UserAuthControllerDb> logger, IConfiguration configuration)
+            ILogger<UserAuthControllerDb> logger)
         {
             this.userAuthService = userAuthService;
             this.usersRepository = usersRepository;
-            this.configuration = configuration;
             this.logger = logger;
         }
 
@@ -60,99 +58,6 @@ namespace Dekauto.Auth.Service.Controllers
                 logger.LogError(ex, "An unexpected error occurred while searching for the user");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при поиске пользователя. Обратитесь к администратору или попробуйте позже.");
-            }
-        }
-
-        [HttpPost("{userId}/changepass")]
-        public async Task<IActionResult> UpdateUserPasswordAsync(Guid userId, string newPassword, string currentPassword)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(newPassword))
-                {
-                    throw new ArgumentException($"'{nameof(newPassword)}' cannot be null or empty.", nameof(newPassword));
-                }
-
-                if (string.IsNullOrEmpty(currentPassword))
-                {
-                    throw new ArgumentException($"'{nameof(currentPassword)}' cannot be null or empty.", nameof(currentPassword));
-                }
-
-                await userAuthService.ChangePasswordAsync(userId, newPassword, currentPassword);
-
-                return Ok();
-
-            }
-            catch (InvalidCredentialException ex)
-            {
-                logger.LogError(ex, "Invalid password.");
-                return StatusCode(StatusCodes.Status403Forbidden, "Указан неверный пароль.");
-            }
-            catch (ArgumentException ex)
-            {
-                logger.LogError(ex, "Not enough arguments passed to change the password");
-                return StatusCode(StatusCodes.Status400BadRequest,
-                    "Возникла непредвиденная ошибка при изменении пароля. Обратитесь к администратору или попробуйте позже.");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "An unexpected error occurred while changing the password");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Возникла непредвиденная ошибка при изменении пароля. Обратитесь к администратору или попробуйте позже.");
-            }
-        }
-
-        [HttpGet("/changepass/force/available")]
-        public IActionResult IsForcePasswordChangeAvailable()
-        {
-            var isAvailable = configuration.GetValue<bool>("AllowForcePasswordChange", false);
-            return Ok(isAvailable);
-        }
-
-        [AllowAnonymous]
-        [HttpPost("{userId}/changepass/force")]
-        public async Task<IActionResult> ForceUpdateUserPasswordAsync(Guid userId, string newPassword)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(newPassword))
-                {
-                    throw new ArgumentException($"'{nameof(newPassword)}' cannot be null or empty.", nameof(newPassword));
-                }
-
-                await userAuthService.ChangePasswordAsync(userId, newPassword, null, true);
-
-                return Ok();
-
-            }
-            catch (InvalidOperationException ex)
-            {
-                logger.LogError(ex, "Force password update is not available.");
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    "Принудительная смена пароля недоступна.");
-            }
-            catch (KeyNotFoundException ex)
-            {
-                logger.LogError(ex, "User not found");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Пользователь не найден.");
-            }
-            catch (InvalidCredentialException ex)
-            {
-                logger.LogError(ex, "Invalid password.");
-                return StatusCode(StatusCodes.Status403Forbidden, "Указан неверный пароль.");
-            }
-            catch (ArgumentException ex)
-            {
-                logger.LogError(ex, "Not enough arguments passed to change the password");
-                return StatusCode(StatusCodes.Status400BadRequest,
-                    "Возникла непредвиденная ошибка при изменении пароля. Обратитесь к администратору или попробуйте позже.");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "An unexpected error occurred while changing the password");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Возникла непредвиденная ошибка при изменении пароля. Обратитесь к администратору или попробуйте позже.");
             }
         }
 

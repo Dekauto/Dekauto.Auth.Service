@@ -137,10 +137,10 @@ namespace Dekauto.Auth.Service.Services
             await usersRepository.UpdateAsync(user);
         }
 
-        public async Task ChangePasswordAsync(Guid userId, string newPassword, string? currentPassword, bool forceUpdate = false)
+        public async Task ChangePasswordAsync(string login, string newPassword, string? currentPassword, bool forceUpdate = false)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(newPassword);
-            var currentUser = await usersRepository.GetByIdAsync(userId);
+            var currentUser = await usersRepository.GetByLoginAsync(login);
             if (currentUser == null) throw new KeyNotFoundException();
 
             if (forceUpdate)
