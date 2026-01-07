@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Dekauto.Auth.Service.Domain.Entities;
 
@@ -19,4 +17,7 @@ public partial class User
 
     [JsonIgnore]
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
+
+    [JsonIgnore]
+    public virtual ICollection<TokenInfo> TokenInfos { get; set; } = new List<TokenInfo>();
 }

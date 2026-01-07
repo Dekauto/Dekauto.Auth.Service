@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Dekauto.Auth.Service.Domain.Entities;
+using System;
 using System.Collections.Generic;
 
-namespace Dekauto.Auth.Service.Domain.Entities;
+namespace Dekauto.Auth.Service;
 
 public partial class Student
 {
@@ -154,6 +155,8 @@ public partial class Student
     public string? AddressResidentialHousingType { get; set; }
 
     public string? Education { get; set; }
+
+    public virtual Grade? Grade { get; set; }
 
     public virtual Group? Group { get; set; }
 

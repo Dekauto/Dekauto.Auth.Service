@@ -16,6 +16,6 @@ namespace Dekauto.Auth.Service.Domain.Interfaces
         Task<TokensModel> RefreshTokensAsync(RefreshToken refreshToken);
         ConcurrentDictionary<string, RefreshToken>? GetDict();
         bool VerifyHashedPassword(string hashedPassword, string providedPassword);
-        Task ChangePasswordAsync(Guid userId, string newPassword, string currentPassword);
+        Task ChangePasswordAsync(Guid userId, string newPassword, string? currentPassword, bool forceUpdate = false);
     }
 }

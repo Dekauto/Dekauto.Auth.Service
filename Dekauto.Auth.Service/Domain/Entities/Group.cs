@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Dekauto.Auth.Service.Domain.Entities;
+namespace Dekauto.Auth.Service;
 
 public partial class Group
 {

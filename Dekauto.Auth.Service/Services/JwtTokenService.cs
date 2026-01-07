@@ -106,7 +106,7 @@ namespace Dekauto.Auth.Service.Services
             {
                 Token = Guid.NewGuid().ToString("N"),
                 UserId = userId,
-                Expires = refreshTokenExpires
+                ExpiresAt = refreshTokenExpires
             };
 
             // Удаляем все существующие refresh-токены для этого пользователя
@@ -155,7 +155,7 @@ namespace Dekauto.Auth.Service.Services
 
             // Получение rt из хранилища и проверка на просроченность
             if (!refreshTokens.TryRemove(refreshToken, out var fullToken)
-                || fullToken.Expires < DateTime.UtcNow)
+                || fullToken.ExpiresAt < DateTime.UtcNow)
             {
                 return new TryRefreshTokensModel(false, newTokens);
             }

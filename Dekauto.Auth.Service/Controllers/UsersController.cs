@@ -12,12 +12,12 @@ namespace Dekauto.Auth.Service.Controllers
     [Authorize(Policy = "OnlyAdmin")]
     public class UsersController : ControllerBase
     {
-        private readonly IUserAuthService userAuthService;
+        private readonly IUserAuthServiceDb userAuthService;
         private readonly IUsersRepository usersRepository;
-        private readonly ILogger<UserAuthController> logger;
+        private readonly ILogger<UserAuthControllerDb> logger;
 
-        public UsersController(IUserAuthService userAuthService, IUsersRepository usersRepository,
-            ILogger<UserAuthController> logger)
+        public UsersController(IUserAuthServiceDb userAuthService, IUsersRepository usersRepository,
+            ILogger<UserAuthControllerDb> logger)
         {
             this.userAuthService = userAuthService;
             this.usersRepository = usersRepository;
@@ -58,45 +58,6 @@ namespace Dekauto.Auth.Service.Controllers
                 logger.LogError(ex, "An unexpected error occurred while searching for the user");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при поиске пользователя. Обратитесь к администратору или попробуйте позже.");
-            }
-        }
-
-        [HttpPost("{userId}/changepass")]
-        public async Task<IActionResult> UpdateUserPasswordAsync(Guid userId, string newPassword, string currentPassword)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(newPassword))
-                {
-                    throw new ArgumentException($"'{nameof(newPassword)}' cannot be null or empty.", nameof(newPassword));
-                }
-
-                if (string.IsNullOrEmpty(currentPassword))
-                {
-                    throw new ArgumentException($"'{nameof(currentPassword)}' cannot be null or empty.", nameof(currentPassword));
-                }
-
-                await userAuthService.ChangePasswordAsync(userId, newPassword, currentPassword);
-
-                return Ok();
-
-            }
-            catch (InvalidCredentialException ex)
-            {
-                logger.LogError(ex, "Invalid password.");
-                return StatusCode(StatusCodes.Status403Forbidden, "Указан неверный пароль.");
-            }
-            catch (ArgumentException ex)
-            {
-                logger.LogError(ex, "Not enough arguments passed to change the password");
-                return StatusCode(StatusCodes.Status400BadRequest,
-                    "Возникла непредвиденная ошибка при изменении пароля. Обратитесь к администратору или попробуйте позже.");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "An unexpected error occurred while changing the password");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Возникла непредвиденная ошибка при изменении пароля. Обратитесь к администратору или попробуйте позже.");
             }
         }
 
