@@ -1,7 +1,7 @@
 # Dekauto: ⚪ Сервис Авторизации (Dekauto.Auth.Service)
 ### Сервис управления учетными записями пользователей, осуществления входа и выдачи токенов для входа. Необходим для доступа к эндпоинтам сервисов [Студенты](https://github.com/TOXYGENCY/Dekauto.Students.Service), [Импорт](https://github.com/TOXYGENCY/Dekauto.Import.Service) и [Экспорт](https://github.com/TOXYGENCY/Dekauto.Export.Service).
 
-### 🔸 Функции
+### 🔸 Функции 
 - Управление (CRUD) объектами User, Role.
 - Идентификация, аутентификация и авторизация пользователя.
 - Выдача Access-токена (JWT).

@@ -137,7 +137,7 @@ try
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
-    // Добавление swagger с авторизацией
+    // Добавление swagger с авторизацией.
     builder.Services.AddSwaggerGen(c =>
     {
         c.SwaggerDoc("v1", new OpenApiInfo
