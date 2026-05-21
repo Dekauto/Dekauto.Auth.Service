@@ -72,11 +72,12 @@ namespace Dekauto.Auth.Service.Services
                 Path = "/api/auth" // Кука будет отправляться только на этот путь
             };
 
+            // SameSite=None требует Secure=true — на HTTP (localhost) это даёт предупреждение и сбой куки
             var deleteOptions = new CookieOptions
             {
                 Path = "/",
                 Secure = useHttps,
-                SameSite = SameSiteMode.None // Для гарантированного удаления
+                SameSite = useHttps ? SameSiteMode.None : SameSiteMode.Lax
             };
 
             // Удаляем старую куку перед установкой новой

@@ -32,12 +32,16 @@ namespace Dekauto.Auth.Service.Infrastructure
 
         public async Task<User> GetByIdAsync(Guid id)
         {
-            return await сontext.Users.FirstOrDefaultAsync(user => user.Id == id);
+            return await сontext.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(user => user.Id == id);
         }
 
         public async Task<User> GetByLoginAsync(string login)
         {
-            return await сontext.Users.FirstOrDefaultAsync(user => user.Login == login);
+            return await сontext.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(user => user.Login == login);
         }
 
         public async Task UpdateAsync(User updatedUser)

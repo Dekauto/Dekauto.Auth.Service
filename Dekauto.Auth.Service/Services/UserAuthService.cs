@@ -65,21 +65,21 @@ namespace Dekauto.Auth.Service.Services
         // Передача refresh токена только через HttpOnly куки, недоступный для JS. (вызывать в контроллере)
         public void SetRefreshTokenCookie(HttpResponse response, string refreshToken)
         {
+            var useHttps = Boolean.Parse(configuration["UseHttps"] ?? "false");
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(configuration["Jwt:RefreshTokenExpireDays"] ?? "7")),
-                Secure = Boolean.Parse(configuration["UseHttps"]), // HTTPS
-                SameSite = SameSiteMode.Strict, // Защита от CSRF
+                Secure = useHttps,
+                SameSite = SameSiteMode.Strict,
                 Path = "/api/auth"
             };
 
-            // Отдельные настройки для удаления
             var deleteOptions = new CookieOptions
             {
-                Path = "/", // Широкий путь для гарантированного удаления
-                Secure = true, // Обеспечиваем удаление и для HTTP, и для HTTPS
-                SameSite = SameSiteMode.None // Для максимальной совместимости при удалении
+                Path = "/",
+                Secure = useHttps,
+                SameSite = useHttps ? SameSiteMode.None : SameSiteMode.Lax
             };
 
             if (response is null)
