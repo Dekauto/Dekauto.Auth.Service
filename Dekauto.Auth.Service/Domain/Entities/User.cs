@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Dekauto.Auth.Service.Domain.Entities;
 
@@ -11,6 +11,9 @@ public partial class User
     public string PasswordHash { get; set; } = null!;
 
     public Guid RoleId { get; set; }
+
+    /// <summary>ID преподавателя во внешнем API расписания (0x...).</summary>
+    public string? ExternalTeacherId { get; set; }
 
     [JsonIgnore]
     public virtual Role Role { get; set; } = null!;

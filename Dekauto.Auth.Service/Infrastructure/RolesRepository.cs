@@ -1,4 +1,4 @@
-﻿using Dekauto.Auth.Service.Domain.Entities;
+using Dekauto.Auth.Service.Domain.Entities;
 using Dekauto.Auth.Service.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,7 +37,15 @@ namespace Dekauto.Auth.Service.Infrastructure
 
         public async Task<Role> GetByRoleNameAsync(string name)
         {
-            return await сontext.Roles.FirstOrDefaultAsync(role => role.EngName == name);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return null;
+            }
+
+            var key = name.Trim();
+            return await сontext.Roles.FirstOrDefaultAsync(role =>
+                role.EngName.ToLower() == key.ToLower()
+                || role.Name.ToLower() == key.ToLower());
         }
 
         public async Task UpdateAsync(Role updatedRole)

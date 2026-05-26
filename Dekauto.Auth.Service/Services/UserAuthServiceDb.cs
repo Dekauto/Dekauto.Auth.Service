@@ -1,7 +1,8 @@
-﻿using Dekauto.Auth.Service.Domain.Entities;
+using Dekauto.Auth.Service.Domain.Entities;
 using Dekauto.Auth.Service.Domain.Entities.DTO;
 using Dekauto.Auth.Service.Domain.Entities.Models;
 using Dekauto.Auth.Service.Domain.Interfaces;
+using Dekauto.Auth.Service.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Authentication;
 using System.Text.Json;
@@ -13,15 +14,18 @@ namespace Dekauto.Auth.Service.Services
         private readonly IUsersRepository usersRepository;
         private readonly IRolesService rolesService;
         private readonly IJwtTokenServiceDb jwtTokenService;
+        private readonly ITeacherProfileProvisioner teacherProfileProvisioner;
 
         private readonly IConfiguration configuration;
         private readonly PasswordHasher<object> hasher;
 
         public UserAuthServiceDb(IUsersRepository usersRepository, IRolesService rolesService,
-            IJwtTokenServiceDb jwtTokenService, IConfiguration configuration)
+            IJwtTokenServiceDb jwtTokenService, ITeacherProfileProvisioner teacherProfileProvisioner,
+            IConfiguration configuration)
         {
             this.usersRepository = usersRepository;
             this.jwtTokenService = jwtTokenService;
+            this.teacherProfileProvisioner = teacherProfileProvisioner;
             this.configuration = configuration;
             this.rolesService = rolesService;
             hasher = new PasswordHasher<object>();
@@ -101,14 +105,36 @@ namespace Dekauto.Auth.Service.Services
             if (userDto is null) throw new ArgumentNullException(nameof(userDto));
 
             var passwordHash = HashPassword(password);
-            var role = await rolesService.GetByRoleNameAsync(userDto.RoleName);
-            if (role == null) throw new KeyNotFoundException($"Роль {userDto.EngRoleName} не найдена");
+            var role = await ResolveRoleAsync(userDto);
+            if (role == null)
+            {
+                throw new KeyNotFoundException(
+                    $"Роль не найдена (roleName='{userDto.RoleName}', engRoleName='{userDto.EngRoleName}'). " +
+                    "Укажите «Преподаватель» или «Teacher».");
+            }
+
+            var externalTeacherId = string.IsNullOrWhiteSpace(userDto.ExternalTeacherId)
+                ? null
+                : userDto.ExternalTeacherId.Trim();
+            if (string.Equals(role.EngName, "Teacher", StringComparison.OrdinalIgnoreCase)
+                && string.IsNullOrWhiteSpace(externalTeacherId))
+            {
+                throw new ArgumentException(
+                    "Для роли «Преподаватель» укажите externalTeacherId (ID из API расписания, например 0x80DD...).");
+            }
 
             var newUser = await FromDtoAsync(userDto);
             newUser.PasswordHash = passwordHash;
             newUser.RoleId = role.Id;
+            newUser.ExternalTeacherId = externalTeacherId;
 
             await usersRepository.AddAsync(newUser);
+
+            if (string.Equals(role.EngName, "Teacher", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(newUser.ExternalTeacherId))
+            {
+                await teacherProfileProvisioner.EnsureTeacherEntityAsync(newUser.ExternalTeacherId, newUser.Login);
+            }
         }
 
         public async Task UpdateUserAsync(Guid userId, UserDto updatedUserDto, string? newPassword = null)
@@ -121,6 +147,12 @@ namespace Dekauto.Auth.Service.Services
                 throw new InvalidOperationException($"Пользователь с Id = {userId} не найден.");
 
             user.Login = updatedUserDto.Login;
+            if (updatedUserDto.ExternalTeacherId != null)
+            {
+                user.ExternalTeacherId = string.IsNullOrWhiteSpace(updatedUserDto.ExternalTeacherId)
+                    ? null
+                    : updatedUserDto.ExternalTeacherId.Trim();
+            }
 
             if (!string.IsNullOrWhiteSpace(newPassword))
             {
@@ -129,13 +161,35 @@ namespace Dekauto.Auth.Service.Services
 
             if (!string.IsNullOrWhiteSpace(updatedUserDto.RoleName))
             {
-                var role = await rolesService.GetByRoleNameAsync(updatedUserDto.RoleName);
+                var role = await ResolveRoleAsync(updatedUserDto);
                 if (role == null)
-                    throw new InvalidOperationException($"Роль '{updatedUserDto.EngRoleName}' не найдена.");
+                {
+                    throw new InvalidOperationException(
+                        $"Роль не найдена (roleName='{updatedUserDto.RoleName}', engRoleName='{updatedUserDto.EngRoleName}'). " +
+                        "Укажите «Преподаватель» или «Teacher».");
+                }
                 user.RoleId = role.Id;
                 user.Role = role;
             }
+
             await usersRepository.UpdateAsync(user);
+
+            var effectiveRole = user.Role;
+            if (effectiveRole == null && !string.IsNullOrWhiteSpace(updatedUserDto.RoleName))
+            {
+                effectiveRole = await ResolveRoleAsync(updatedUserDto);
+            }
+            if (effectiveRole != null
+                && string.Equals(effectiveRole.EngName, "Teacher", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrWhiteSpace(user.ExternalTeacherId))
+                {
+                    throw new ArgumentException(
+                        "Для роли «Преподаватель» укажите externalTeacherId (ID из API расписания, например 0x80DD...).");
+                }
+
+                await teacherProfileProvisioner.EnsureTeacherEntityAsync(user.ExternalTeacherId, user.Login);
+            }
         }
 
         public async Task ChangePasswordAsync(string login, string newPassword, string? currentPassword, bool forceUpdate = false)
@@ -202,6 +256,8 @@ namespace Dekauto.Auth.Service.Services
                 userDto.RoleName = user.Role.Name;
                 userDto.EngRoleName = user.Role.EngName;
             }
+
+            userDto.ExternalTeacherId = user.ExternalTeacherId;
             return userDto;
         }
 
@@ -214,6 +270,26 @@ namespace Dekauto.Auth.Service.Services
                 userDtos.Add(ToDto(user));
             }
             return userDtos;
+        }
+
+        /// <summary>Поиск роли по русскому или английскому имени из DTO.</summary>
+        private async Task<Role> ResolveRoleAsync(UserDto userDto)
+        {
+            foreach (var key in new[] { userDto.RoleName, userDto.EngRoleName })
+            {
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    continue;
+                }
+
+                var role = await rolesService.GetByRoleNameAsync(key.Trim());
+                if (role != null)
+                {
+                    return role;
+                }
+            }
+
+            return null;
         }
     }
 }

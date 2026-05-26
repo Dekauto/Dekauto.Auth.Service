@@ -1,4 +1,4 @@
-﻿using Dekauto.Auth.Service.Domain.Interfaces;
+using Dekauto.Auth.Service.Domain.Interfaces;
 using Dekauto.Auth.Service.Infrastructure;
 using Dekauto.Auth.Service.Infrastructure.Repositories;
 using Dekauto.Auth.Service.Middlewares;
@@ -227,6 +227,7 @@ try
     builder.Services.AddScoped<ITokenRepository, TokenRepository>();
     builder.Services.AddScoped<IUserManagementService, UserManagementService>();
     builder.Services.AddScoped<IUserAuthServiceDb, UserAuthServiceDb>();
+    builder.Services.AddScoped<ITeacherProfileProvisioner, TeacherProfileProvisioner>();
     builder.Services.AddTransient<IUsersRepository, UsersRepository>();
     builder.Services.AddTransient<IRolesRepository, RolesRepository>();
     builder.Services.AddTransient<IRolesService, RolesService>();

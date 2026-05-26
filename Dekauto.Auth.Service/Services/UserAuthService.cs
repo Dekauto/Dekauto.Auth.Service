@@ -1,4 +1,4 @@
-﻿using Dekauto.Auth.Service.Domain.Entities;
+using Dekauto.Auth.Service.Domain.Entities;
 using Dekauto.Auth.Service.Domain.Entities.DTO;
 using Dekauto.Auth.Service.Domain.Entities.Models;
 using Dekauto.Auth.Service.Domain.Interfaces;
@@ -217,9 +217,13 @@ namespace Dekauto.Auth.Service.Services
             // Обновляем роль пользователя, если нужно (например, по имени роли)
             if (!string.IsNullOrWhiteSpace(updatedUserDto.RoleName))
             {
-                var role = await rolesService.GetByRoleNameAsync(updatedUserDto.RoleName);
+                var role = await ResolveRoleAsync(updatedUserDto);
                 if (role == null)
-                    throw new InvalidOperationException($"Роль '{updatedUserDto.EngRoleName}' не найдена.");
+                {
+                    throw new InvalidOperationException(
+                        $"Роль не найдена (roleName='{updatedUserDto.RoleName}', engRoleName='{updatedUserDto.EngRoleName}'). " +
+                        "Укажите «Преподаватель» или «Teacher».");
+                }
                 user.RoleId = role.Id;
                 user.Role = role;
             }
@@ -231,8 +235,13 @@ namespace Dekauto.Auth.Service.Services
             if (userDto is null) throw new ArgumentNullException(nameof(userDto));
 
             var passwordHash = HashPassword(password);
-            var role = await rolesService.GetByRoleNameAsync(userDto.RoleName);
-            if (role == null) throw new KeyNotFoundException($"Роль {userDto.EngRoleName} не найдена");
+            var role = await ResolveRoleAsync(userDto);
+            if (role == null)
+            {
+                throw new KeyNotFoundException(
+                    $"Роль не найдена (roleName='{userDto.RoleName}', engRoleName='{userDto.EngRoleName}'). " +
+                    "Укажите «Преподаватель» или «Teacher».");
+            }
 
             var newUser = await FromDtoAsync(userDto);
             newUser.PasswordHash = passwordHash;
@@ -272,6 +281,25 @@ namespace Dekauto.Auth.Service.Services
         public ConcurrentDictionary<string, RefreshToken>? GetDict()
         {
             return jwtTokenService.GetDict();
+        }
+
+        private async Task<Role> ResolveRoleAsync(UserDto userDto)
+        {
+            foreach (var key in new[] { userDto.RoleName, userDto.EngRoleName })
+            {
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    continue;
+                }
+
+                var role = await rolesService.GetByRoleNameAsync(key.Trim());
+                if (role != null)
+                {
+                    return role;
+                }
+            }
+
+            return null;
         }
     }
 }

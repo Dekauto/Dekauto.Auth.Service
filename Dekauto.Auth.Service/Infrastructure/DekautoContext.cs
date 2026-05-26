@@ -1,4 +1,4 @@
-﻿using Dekauto.Auth.Service.Domain.Entities;
+using Dekauto.Auth.Service.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -428,6 +428,9 @@ public partial class DekautoContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("password_hash");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
+            entity.Property(e => e.ExternalTeacherId)
+                .HasMaxLength(64)
+                .HasColumnName("external_teacher_id");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)

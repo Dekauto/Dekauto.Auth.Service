@@ -1,4 +1,4 @@
-﻿namespace Dekauto.Auth.Service.Domain.Entities.DTO
+namespace Dekauto.Auth.Service.Domain.Entities.DTO
 {
     public partial class UserDto
     {
@@ -8,5 +8,8 @@
 
         public string RoleName { get; set; }
         public string EngRoleName { get; set; }
+
+        /// <summary>ID преподавателя для Teachers API (обязателен при роли «Преподаватель»).</summary>
+        public string? ExternalTeacherId { get; set; }
     }
 }

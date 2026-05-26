@@ -1,4 +1,4 @@
-﻿using Dekauto.Auth.Service.Domain.Entities;
+using Dekauto.Auth.Service.Domain.Entities;
 using Dekauto.Auth.Service.Domain.Entities.DTO;
 using Dekauto.Auth.Service.Domain.Entities.Models;
 using Dekauto.Auth.Service.Domain.Interfaces;
@@ -129,6 +129,11 @@ namespace Dekauto.Auth.Service.Services
                 new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
                 new Claim(ClaimTypes.Role, account.EngRoleName)
             };
+
+            if (!string.IsNullOrWhiteSpace(account.ExternalTeacherId))
+            {
+                claims.Add(new Claim("external_teacher_id", account.ExternalTeacherId));
+            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
